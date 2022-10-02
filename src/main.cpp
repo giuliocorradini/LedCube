@@ -68,6 +68,7 @@ void drawCube(uint8_t x, uint8_t y, uint8_t z, uint8_t s);
 void lightCube();
 void clearCube();
 
+unsigned long targetTimer = 0;
 
 void setup() {
 
@@ -85,63 +86,45 @@ void setup() {
     randomSeed(analogRead(0));
     digitalWrite(GREEN_LED, HIGH);
 
+    targetTimer = millis() + 3000;
 }
+
+enum CubeAngle_t {
+    UPPER_FRONT_LEFT = 1,
+    UPPER_FRONT_RIGHT,
+    UPPER_REAR_LEFT,
+    UPPER_REAR_RIGHT,
+    LOWER_FRONT_LEFT,
+    LOWER_FRONT_RIGHT,
+    LOWER_REAR_LEFT,
+    LOWER_REAR_RIGHT,
+} lit_angle;
+
+const int UPPER = 4;
+const int FRONT = 0;
+const int LOWER = 0;
+const int REAR = 4;
+const int LEFT = 0;
+const int RIGHT = 4;
+
+void lightAngle(enum CubeAngle_t);
+
 
 void loop() {
 
-    randomTimer++;
+    if(millis() > targetTimer) {
+        targetTimer = millis() + 3000;
 
-    /*if (digitalRead(BUTTON_PIN) == LOW) {
         clearCube();
-        loading = true;
-        timer = 0;
-        currentEffect++;
-        if (currentEffect == TOTAL_EFFECTS) {
-            currentEffect = 0;
-        }
-        randomSeed(randomTimer);
-        randomTimer = 0;
-        digitalWrite(RED_LED, HIGH);
-        digitalWrite(GREEN_LED, LOW);
-        delay(500);
-        digitalWrite(RED_LED, LOW);
-        digitalWrite(GREEN_LED, HIGH);
-    }*/
+        lightAngle(lit_angle);
 
-    switch (LIT) {
-        case RAIN:
-            rain();
-            break;
-        case PLANE_BOING:
-            planeBoing();
-            break;
-        case SEND_VOXELS:
-            sendVoxels();
-            break;
-        case WOOP_WOOP:
-            woopWoop();
-            break;
-        case CUBE_JUMP:
-            cubeJump();
-            break;
-        case GLOW:
-            glow();
-            break;
-        case TEXT:
-            text("0123456789", 10);
-            break;
-        case LIT:
-            lit();
-            break;
-
-        default:
-            rain();
+        lit_angle = static_cast<CubeAngle_t>(static_cast<int>(lit_angle) + 1);
+        if(lit_angle > 8)
+            lit_angle = UPPER_FRONT_LEFT;
     }
 
+
     renderCube();
-
-
-
 }
 
 /*
@@ -156,6 +139,46 @@ void renderCube() {
             SPI.transfer(cube[i][j]); // Attiva i LED per una riga di colonne (5 colonne adiacenti)
         }
         digitalWrite(SS, HIGH);
+    }
+}
+
+
+void lightAngle(enum CubeAngle_t angle) {
+    Serial.print("Current angle: ");
+
+    switch(angle) {
+        case UPPER_FRONT_LEFT:
+            setVoxel(FRONT, UPPER, LEFT);
+            Serial.println("UPPER_FRONT_LEFT");
+            break;
+        case UPPER_FRONT_RIGHT:
+            setVoxel(FRONT, UPPER, RIGHT);
+            Serial.println("UPPER_FRONT_RIGHT");
+            break;
+        case LOWER_FRONT_LEFT:
+            setVoxel(FRONT, LOWER, LEFT);
+            Serial.println("LOWER_FRONT_LEFT");
+            break;
+        case LOWER_FRONT_RIGHT:
+            setVoxel(FRONT, LOWER, RIGHT);
+            Serial.println("LOWER_FRONT_RIGHT");
+            break;
+        case UPPER_REAR_LEFT:
+            setVoxel(REAR, UPPER, LEFT);
+            Serial.println("UPPER_REAR_LEFT");
+            break;
+        case UPPER_REAR_RIGHT:
+            setVoxel(REAR, UPPER, RIGHT);
+            Serial.println("UPPER_REAR_RIGHT");
+            break;
+        case LOWER_REAR_LEFT:
+            setVoxel(REAR, LOWER, LEFT);
+            Serial.println("LOWER_REAR_LEFT");
+            break;
+        case LOWER_REAR_RIGHT:
+            setVoxel(REAR, LOWER, RIGHT);
+            Serial.println("LOWER_REAR_RIGHT");
+            break;
     }
 }
 
