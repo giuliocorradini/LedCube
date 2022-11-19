@@ -8,7 +8,7 @@
 
 #define TOTAL_EFFECTS 8
 
-#define RAIN_TIME 260
+#define RAIN_TIME 1000
 #define PLANE_BOING_TIME 220
 #define SEND_VOXELS_TIME 140
 #define WOOP_WOOP_TIME 350
@@ -37,7 +37,7 @@ uint16_t timer;
 
 uint64_t randomTimer;
 
-bool loading;
+bool loading = true;
 
 void renderCube();
 void rain();
@@ -59,6 +59,25 @@ void clearCube();
 
 unsigned long targetTimer = 0;
 
+void light_test() {
+    setVoxel(0, 0, 1);
+    setVoxel(0, 0, 2);
+    setVoxel(0, 0, 3);
+
+    setVoxel(1, 0, 0);
+    setVoxel(1, 0, 4);
+
+    setVoxel(2, 0, 0);
+    setVoxel(2, 0, 4);
+
+    setVoxel(3, 0, 0);
+    setVoxel(3, 0, 4);
+
+    setVoxel(4, 0, 1);
+    setVoxel(4, 0, 2);
+    setVoxel(4, 0, 3);
+}
+
 void setup() {
 
     loading = true;
@@ -78,6 +97,8 @@ void setup() {
     digitalWrite(GREEN_LED, HIGH);
 
     targetTimer = millis() + 3000;
+
+    light_test();
 }
 
 enum CubeAngle_t {
@@ -108,17 +129,7 @@ void lightAngle(enum CubeAngle_t);
 
 void loop() {
 
-    if(millis() > targetTimer) {
-        targetTimer = millis() + 3000;
-
-        clearCube();
-        lightAngle(lit_angle);
-
-        lit_angle = static_cast<CubeAngle_t>(static_cast<int>(lit_angle) + 1);
-        if(lit_angle > 8)
-            lit_angle = TOP_FRONT_LEFT;
-    }
-
+    rain();
 
     renderCube();
 }
@@ -188,10 +199,10 @@ void rain() {
     timer++;
     if (timer > RAIN_TIME) {
         timer = 0;
-        shift(NEG_X);
+        shift(POS_X);
         uint8_t numDrops = random(0, 5);
         for (uint8_t i = 0; i < numDrops; i++) {
-            setVoxel(random(0, 8), 7, random(0, 8));
+            setVoxel(TOP, random(0, 5), random(0, 5));
         }
     }
 }
@@ -540,7 +551,7 @@ void shift(uint8_t direction) {
         case POS_X:
             for (x = 4; x > 0; x--) {
                 for (y = 0; y < 5; y++) {
-                    cube[x][y] = cube[x - 1][y] << 1;
+                    cube[x][y] = cube[x - 1][y];
                 }
             }
             for (y = 0; y < 5; y++) {
@@ -559,7 +570,7 @@ void shift(uint8_t direction) {
             break;
         case POS_Y:
             for (x = 0; x < 5; x++) {
-                for (y = 4; y > 0; y++) {
+                for (y = 4; y > 0; y--) {
                     cube[x][y] = cube[x][y - 1];
                 }
                 cube[x][0] = 0x00;
