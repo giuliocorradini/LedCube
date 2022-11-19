@@ -1,13 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
-
-enum axis {
-    X_AXIS, Y_AXIS, Z_AXIS
-};
-
-enum shift_directions {
-    POS_X, NEG_X, POS_Z, NEG_Z, POS_Y, NEG_Y
-};
+#include "cube.h"
 
 #define BUTTON_PIN 8
 #define RED_LED 5
@@ -35,10 +28,6 @@ uint8_t characters[10][5] = {
         {0x0E, 0x02, 0x02, 0x02, 0x02}, //7
         {0x0E, 0x0A, 0x0E, 0x0A, 0x0E}, //8
         {0x0E, 0x0A, 0x0E, 0x02, 0x0E}, //9
-};
-
-enum effects {
-    RAIN, PLANE_BOING, SEND_VOXELS, WOOP_WOOP, CUBE_JUMP, GLOW, TEXT, LIT
 };
 
 uint8_t cube[5][5];
@@ -79,6 +68,8 @@ void setup() {
     SPI.begin();
     SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
 
+    Serial.begin(9600);
+
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(RED_LED, OUTPUT);
     pinMode(GREEN_LED, OUTPUT);
@@ -100,12 +91,17 @@ enum CubeAngle_t {
     BOTTOM_REAR_RIGHT,
 } lit_angle;
 
+//Variazioni su X
 const int TOP = 0;
-const int FRONT = 4;
 const int BOTTOM = 4;
+
+//Variazioni su Y
 const int REAR = 0;
-const int LEFT = 4;
+const int FRONT = 4;
+
+//Variazioni su Z
 const int RIGHT = 0;
+const int LEFT = 4;
 
 void lightAngle(enum CubeAngle_t);
 
