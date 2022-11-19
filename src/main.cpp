@@ -13,9 +13,8 @@
 #define SEND_VOXELS_TIME 140
 #define WOOP_WOOP_TIME 350
 #define CUBE_JUMP_TIME 700
-#define GLOW_TIME 8
-#define TEXT_TIME 300
-#define CLOCK_TIME 500
+#define GLOW_TIME 30
+#define TEXT_TIME 1000
 
 const int EFFECT_CHANGE_TIME = 5000;    //tempo che intercorre tra un effetto e il successivo in ms
 
@@ -39,7 +38,7 @@ uint16_t timer;
 
 uint64_t randomTimer;
 
-bool loading = true;
+bool loading = true;    //true se ho appena cambiato l'effetto
 
 void renderCube();
 void rain();
@@ -130,12 +129,17 @@ void lightAngle(enum CubeAngle_t);
 
 void next_effect() {
     switch(currentEffect) {
+        case LIT:
+            currentEffect = RAIN;
+            break;
         case RAIN:
             currentEffect = CUBE_JUMP;
             break;
         case CUBE_JUMP:
+            currentEffect = LIT;
+            break;
         default:
-            currentEffect = RAIN;
+            currentEffect = LIT;
     }
 }
 
@@ -144,6 +148,7 @@ void loop() {
     if(millis() > targetTimer) {
         targetTimer += EFFECT_CHANGE_TIME;
 
+        loading = true;
         next_effect();
     }
 
@@ -153,6 +158,12 @@ void loop() {
             break;
         case CUBE_JUMP:
             cubeJump();
+            break;
+        case GLOW:
+            glow();
+            break;
+        case LIT:
+            lit();
             break;
     }
 
@@ -453,24 +464,25 @@ void glow() {
     timer++;
     if (timer > GLOW_TIME) {
         timer = 0;
-        if (glowing) {
-            if (glowCount < 448) {
+
+        if (glowing) {  //accendi pixel random se true
+            if (glowCount < 50) {
                 do {
                     selX = random(0, 5);
                     selY = random(0, 5);
                     selZ = random(0, 5);
                 } while (getVoxel(selX, selY, selZ));
+
                 setVoxel(selX, selY, selZ);
                 glowCount++;
-            } else if (glowCount < 512) {
-                lightCube();
-                glowCount++;
+
             } else {
                 glowing = false;
                 glowCount = 0;
             }
-        } else {
-            if (glowCount < 448) {
+
+        } else {    //spegni pixel random
+            if (glowCount < 50) {
                 do {
                     selX = random(0, 5);
                     selY = random(0, 5);
@@ -479,7 +491,6 @@ void glow() {
                 clearVoxel(selX, selY, selZ);
                 glowCount++;
             } else {
-                clearCube();
                 glowing = true;
                 glowCount = 0;
             }
