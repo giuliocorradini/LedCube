@@ -12,10 +12,12 @@
 #define PLANE_BOING_TIME 220
 #define SEND_VOXELS_TIME 140
 #define WOOP_WOOP_TIME 350
-#define CUBE_JUMP_TIME 200
+#define CUBE_JUMP_TIME 700
 #define GLOW_TIME 8
 #define TEXT_TIME 300
 #define CLOCK_TIME 500
+
+const int EFFECT_CHANGE_TIME = 5000;    //tempo che intercorre tra un effetto e il successivo in ms
 
 uint8_t characters[10][5] = {
         {0x0E, 0x11, 0x11, 0x11, 0x0E}, //0
@@ -96,7 +98,7 @@ void setup() {
     randomSeed(analogRead(0));
     digitalWrite(GREEN_LED, HIGH);
 
-    targetTimer = millis() + 3000;
+    targetTimer = millis() + EFFECT_CHANGE_TIME;
 
     light_test();
 }
@@ -126,10 +128,33 @@ const int LEFT = 4;
 
 void lightAngle(enum CubeAngle_t);
 
+void next_effect() {
+    switch(currentEffect) {
+        case RAIN:
+            currentEffect = CUBE_JUMP;
+            break;
+        case CUBE_JUMP:
+        default:
+            currentEffect = RAIN;
+    }
+}
 
 void loop() {
 
-    rain();
+    if(millis() > targetTimer) {
+        targetTimer += EFFECT_CHANGE_TIME;
+
+        next_effect();
+    }
+
+    switch (currentEffect) {
+        case RAIN:
+            rain();
+            break;
+        case CUBE_JUMP:
+            cubeJump();
+            break;
+    }
 
     renderCube();
 }
@@ -510,7 +535,7 @@ void setVoxel(uint8_t x, uint8_t y, uint8_t z) {
 
 void clearVoxel(uint8_t x, uint8_t y, uint8_t z) {
     if (z < 5)
-        cube[x][z] ^= (0x01 << x);
+        cube[x][z] &= ~(0x01 << x);
 }
 
 bool getVoxel(uint8_t x, uint8_t y, uint8_t z) {
@@ -524,12 +549,12 @@ void setPlane(uint8_t axis, uint8_t position) {
     switch (axis) {
         case X_AXIS:
             for (y = 0; y < 5; y++) {
-                cube[position][y] = 0xFF;
+                cube[position][y] = 0x1F;
             }
             break;
         case Y_AXIS:
             for (x = 0; x < 5; x++) {
-                cube[x][position] = 0xFF;
+                cube[x][position] = 0x1F;
             }
             break;
         case Z_AXIS:
